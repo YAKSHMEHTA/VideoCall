@@ -32,8 +32,14 @@ export const connectToSocket = (server)=>{
         })
 
         socket.on("chat-message",(data,sender)=>{
-            
-        })
+            const [matchingRoom,found] = Object.entries(connections)
+            .reduce(([room,isFound] ,[roomKey,roomValue])=>{
+                if(!found && roomValue.include(socket.id)){
+                    return [roomKey,true];
+                }
+                return [room,found];
+            })
+        },['',false])
 
         socket.on("disconnect",()=>{
 
