@@ -1,11 +1,19 @@
-import { Server } from "node:http";
+import { Server } from "socket.io";
 
 let connections = {};
 let messages = {};
 let timeOnline = {};
 
 export const connectToSocket = (server) => {
-    const io = Server(server);
+    const io = new Server(server, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST"],
+            allowedHeaders: ["*"],
+            credentials: true,
+        }
+    });
+
     io.on("connection", (socket) => {
         socket.on("join-call", (path) => {
             if (connections[path] === undefined) {
@@ -40,10 +48,10 @@ export const connectToSocket = (server) => {
         socket.on("chat-message", (data, sender) => {
             const [matchingRoom, found] = Object.entries(connections).reduce(
                 ([room, isFound], [roomKey, roomValue]) => {
-                    if (!found && roomValue.include(socket.id)) {
+                    if (!isFound && roomValue.includes(socket.id)) {
                         return [roomKey, true];
                     }
-                    return [room, found];
+                    return [room, isFound];
                 },
                 ["", false],
             );
@@ -56,8 +64,7 @@ export const connectToSocket = (server) => {
                     data: data,
                     "socket-id-sender": socket.id,
                 });
-                console.log("message :", key, "sender", data);
-                connections[matchingRoom].foreach((elem) => {
+                connections[matchingRoom].forEach((elem) => {
                     io.to(elem).emit("chat-message", data, sender, socket.id);
                 });
             }
@@ -67,18 +74,16 @@ export const connectToSocket = (server) => {
             var differTime = Math.abs(timeOnline[socket.id] - new Date());
             var key;
 
-            for (const [v, k] of JSON.parse(
-                JSON.stringify(Object.entries(connections)),
-            )) {
+            for (const [v, k] of Object.entries(connections)) {
                 for (let a = 0; a < v.length; ++a) {
                     if (v[a] === socket.id) {
-                        key =k
-                        for(let a=0;a<connections[key].length;++a){
-                            io.to(connections[key][a].emit("user-left", socket.id));
+                        key = k;
+                        for (let b = 0; b < connections[key].length; ++b) {
+                            io.to(connections[key][b]).emit("user-left", socket.id);
                         }
                         var index = connections[key].indexOf(socket.id);
                         connections[key].splice(index, 1);
-                        if (connections.length === 0) {
+                        if (connections[key].length === 0) {
                             delete connections[key];
                         }
                     }
@@ -86,5 +91,6 @@ export const connectToSocket = (server) => {
             }
         });
     });
+
     return io;
 };
