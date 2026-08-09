@@ -1,5 +1,5 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+@import "tailwindcss";
 /* Add at the top of your styles string */
 html, body, #root {
     width: 100%;
