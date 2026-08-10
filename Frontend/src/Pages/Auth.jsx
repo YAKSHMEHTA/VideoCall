@@ -1,4 +1,5 @@
 import { useState } from "react";
+import '../App.css'
 
 const EyeIcon = ({ open }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -46,41 +47,15 @@ export default function Auth() {
   };
 
   const inputClass =
-    "w-full bg-[#111111] border  border-[#222222] text-[#f0ede8] px-4 py-3 text-sm focus:outline-none focus:border-[#c9a87c] transition-colors duration-200 placeholder:text-[#333333]";
+    "w-full bg-[#111111] border h-10  border-[#222222] text-[#f0ede8] px-4 py-3 text-sm focus:outline-none focus:border-[#c9a87c] transition-colors duration-200 placeholder:text-[#333333]";
 
   return (
     <div
-      className="min-h-screen bg-[#0c0c0c] flex flex-col"
+      className="min-h-screen bg-[#0c0c0c] gap-10  flex flex-col"
       style={gridBg}
     >
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-[#161616]">
-        <span
-          className="text-[#f0ede8] text-xl tracking-tight"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          Vex
-        </span>
-        <div className="hidden md:flex items-center gap-7">
-          {["Product", "Enterprise", "Pricing", "Docs"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="text-[#555555] text-sm hover:text-[#f0ede8] transition-colors duration-200"
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-        <a
-          href="#"
-          className="text-[#f0ede8] text-sm border border-[#2a2a2a] px-4 py-1.5 hover:border-[#3a3a3a] hover:bg-[#141414] transition-all duration-200"
-        >
-          Get started
-        </a>
-      </nav>
-
-      <div className="flex-1 flex items-center justify-center px-4 py-14">
-        <div className="w-full max-w-[400px]">
+      <div className="flex-1 flex items-center justify-center px-44 py-14">
+        <div className="w-full  py-50 max-w-[500px]">
 
           <div className="flex items-center gap-3 justify-center mb-7">
             <div className="h-px w-6 bg-[#2a2a2a]" />
@@ -110,7 +85,7 @@ export default function Auth() {
             )}
           </h1>
 
-          <div className="flex bg-[#111111] border border-[#1e1e1e] p-[3px] mb-7">
+          <div className="flex bg-[#111111] border  border-[#1e1e1e] p-[3px] mb-7">
             {[
               { key: "login", label: "Sign in" },
               { key: "signup", label: "Create account" },
@@ -129,7 +104,7 @@ export default function Auth() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 ">
             {mode === "signup" && (
               <div>
                 <label className="block text-[10px] tracking-[0.18em] uppercase text-[#555555] mb-2">
