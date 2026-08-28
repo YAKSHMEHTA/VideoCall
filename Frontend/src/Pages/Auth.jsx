@@ -94,7 +94,6 @@ export default function Auth() {
       {/* Expanded vertical padding on the parent wrapper */}
       <div className="flex-1 flex items-center justify-center px-6 md:px-12 py-20 md:py-28">
         <div className="w-full max-w-[420px]">
-          
           {/* Tagline section spacing */}
           <div className="flex items-center gap-3 justify-center mb-8">
             <div className="h-px w-8 bg-[#2a2a2a]" />
@@ -149,7 +148,10 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === "signup" && (
               <div className="space-y-2">
-                <label htmlFor="name" className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]">
+                <label
+                  htmlFor="name"
+                  className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]"
+                >
                   Name
                 </label>
                 <input
@@ -165,7 +167,10 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]">
+              <label
+                htmlFor="username"
+                className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]"
+              >
                 Username
               </label>
               <input
@@ -181,7 +186,10 @@ export default function Auth() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]">
+                <label
+                  htmlFor="password"
+                  className="block text-[10px] tracking-[0.18em] uppercase text-[#555555]"
+                >
                   Password
                 </label>
                 {mode === "login" && (
@@ -217,11 +225,17 @@ export default function Auth() {
             {mode === "signup" && (
               <p className="text-[#555555] text-[10px] leading-relaxed pt-2 pb-1">
                 By creating an account you agree to our{" "}
-                <a href="#" className="text-[#c9a87c] hover:text-[#d4b88a] hover:underline underline-offset-2 transition-all">
+                <a
+                  href="#"
+                  className="text-[#c9a87c] hover:text-[#d4b88a] hover:underline underline-offset-2 transition-all"
+                >
                   Terms
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-[#c9a87c] hover:text-[#d4b88a] hover:underline underline-offset-2 transition-all">
+                <a
+                  href="#"
+                  className="text-[#c9a87c] hover:text-[#d4b88a] hover:underline underline-offset-2 transition-all"
+                >
                   Privacy Policy
                 </a>
                 .
@@ -230,7 +244,7 @@ export default function Auth() {
 
             <button
               type="submit"
-              className="w-full h-12 mt-4 bg-[#f0ede8] rounded-sm text-[#0c0c0c] py-3 text-sm font-medium tracking-wide hover:bg-white hover:shadow-[0_0_15px_rgba(240,237,232,0.15)] active:scale-[0.98] transition-all duration-200"
+              className="w-full h-12 mt-4 bg-[#f0ede8] text-white rounded-sm  py-3 text-sm font-medium tracking-wide hover:bg-white hover:shadow-[0_0_15px_rgba(240,237,232,0.15)] active:scale-[0.98] transition-all duration-200"
             >
               {mode === "login" ? "Sign in" : "Create account"}
             </button>
@@ -245,7 +259,7 @@ export default function Auth() {
             <div className="flex-1 h-px bg-[#1a1a1a]" />
           </div>
 
-          <button 
+          <button
             type="button"
             className="w-full h-12 rounded-sm border border-[#222222] bg-transparent text-[#555555] py-3 text-sm hover:border-[#444444] hover:text-[#f0ede8] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5"
           >
@@ -271,9 +285,9 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  className=" hover:text-[#d4b88a] text-white hover:underline underline-offset-2 transition-all duration-200 ml-1"
+                  className="text-[#c9a87c] hover:text-[#d4b88a] text-white hover:underline underline-offset-2 transition-all duration-200 ml-1"
                 >
-                  Sign indwasd
+                  Sign in
                 </button>
               </>
             )}
