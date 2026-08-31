@@ -27,7 +27,7 @@ const login = async (req, res) => {
       );
       console.log("loggedIn", user.id);
       res.cookie("accessToken", accessToken, { httpOnly: true });
-      return res.status(httpStatus.OK).json({ token });
+      return res.status(httpStatus.CREATED).json({ token:token,msg:"loggedIn" });
     } else {
       console.log("wrong password");
       return res.status(httpStatus.UNAUTHORIZED).json({ message: "Invalid credentials" });
@@ -65,7 +65,7 @@ const register = async (req, res) => {
 
     await newuser.save();
     console.log(newuser);
-    return res.status(httpStatus.CREATED).json({ message: "User created" });
+    return res.status(httpStatus.CREATED).json({ msg: "User created" });
   } catch (e) {
     res.json({ message: `Something went wrong ${e}` });
   }

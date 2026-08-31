@@ -2,7 +2,7 @@ import React from 'react'
 
 function Navbar() {
   return (
-    <div>
+    <div className='relative'>
       <nav className="navBar " style={{ width: '100%',}}>
         <div className="logoText">Ve<span>x</span></div>
         <div className="navMid">

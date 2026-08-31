@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
         password: password,
       },{withCredentials:true});
       if (request.status === HttpStatusCode.Created) {
-        return request.data.message;
+        return request.data;
       }
     }
 
