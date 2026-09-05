@@ -43,20 +43,7 @@ function LandingPage() {
 
   return (
     <div  style={{ width: '100%', minHeight: '100vh' }}>
-       <nav className="navBar " style={{ width: '100%',}}>
-        <div className="logoText">Ve<span>x</span></div>
-        <div className="navMid">
-          <a href="#">Product</a>
-          <a href="#">Enterprise</a>
-          <a href="#">Pricing</a>
-          <a href="#">Changelog</a>
-          <a href="#">Docs</a>
-        </div>
-        <div className="navRight">
-          <button className="nBtn nGhost">Sign in</button>
-          <Link to={"/home"} className="nBtn nSolid">Get started</Link >
-        </div>
-      </nav>
+
  
       {/* ── HERO ── */}
       <section className="heroSection">

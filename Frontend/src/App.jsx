@@ -4,6 +4,7 @@ import { AuthProvider } from "./Contexts/AuthContext";
 import "./App.css";
 import Auth from "./Pages/Auth";
 import VideoPage from "./Pages/VideoPage";
+import AskUsername from "./Pages/AskUsername";
 
 function App() {
   return (
