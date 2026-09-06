@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { connect, io } from "socket.io-client";
 import "../Pages/Landing.css";
 
 function VideoPage() {
@@ -12,7 +13,7 @@ function VideoPage() {
   const socketRef = useRef(null);
   const [videoPermission, setVideoPermission] = useState(false);
   const [audioPermission, setAudioPermission] = useState(false);
-  const [video, setVideo] = useState(null);
+  const [video, setVideo] = useState([]);
   const [audio, setAudio] = useState(null);
   const [screen, setScreen] = useState();
   const [modal, setModal] = useState(null);
@@ -54,14 +55,46 @@ function VideoPage() {
     }
   };
 
+  const gotMessageFromServer = (fromId, message) => { };
+
+  const connectToSocket = () => {
+    socketRef.current = io.connect(serverUrl, { secure: false });
+    socketRef.current.on("signal", gotMessageFromServer);
+
+    socketRef.current.on("connect", () => {
+      socketRef.current.emit("join-call", window.location.href);
+      socketIdRef.id = socketRef.current.id;
+
+      socketRef.current.on("chat-message", addMessage);
+      socketRef.current.on("user-left", (id) => {
+        setVideo((videos) => video.filter((video) => video.socketId !== id));
+      });
+    });
+
+    socketRef.current.on("user-joined", (id, clients) => {
+      clients.forEach((socketListId) => {
+        connections[socketListId] = new RTCPeerConnection(
+          peerConfigConnections,
+        );
+
+        connecttions[socketListId].onicecandidate = (event) => {
+          if (event.candidate !== null) {
+            socketRef.current.emit(
+              "signal",
+              socketListId,
+              JSON.stringify({ ice: event.candidate }),
+            );
+          }
+        };
+      });
+    });
+  };
+
   const getMedia = () => {
     setVideo(videoPermission);
     setAudio(audioPermission);
+    console.log("connect called");
     connectToSocket();
-  };
-
-  const connectToSocket = () => {
-    
   };
 
   getPermissions();
@@ -82,14 +115,14 @@ function VideoPage() {
 
   // }
 
-  const getUserMediaSucccess = (stream) => {};
+  const getUserMediaSucccess = (stream) => { };
 
   const getUserMedia = () => {
     if ((video && videoPermission) || (audio && audioPermission)) {
       navigator.mediaDevices
         .getUserMedia({ video: video, audio: audio })
-        .then(() => {})
-        .then(() => {})
+        .then(() => { })
+        .then(() => { })
         .catch((e) => {
           console.log(e);
         });
@@ -111,9 +144,10 @@ function VideoPage() {
 
   const handleJoin = () => {
     const display = userName.trim() || "Guest";
+    getMedia();
     try {
       localStorage.setItem("displayName", display);
-    } catch (e) {}
+    } catch (e) { }
     setAskUsername(false);
   };
 
@@ -193,10 +227,8 @@ function VideoPage() {
                     onClick={() => {
                       setUserName("");
                       try {
-                        setAskUsername(false);
-                        getMedia();
                         localStorage.removeItem("displayName");
-                      } catch (e) {}
+                      } catch (e) { }
                     }}
                   >
                     Clear
