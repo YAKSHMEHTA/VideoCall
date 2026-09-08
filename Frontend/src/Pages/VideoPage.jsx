@@ -55,7 +55,82 @@ function VideoPage() {
 		}
 	};
 
-	const gotMessageFromServer = (fromId, message) => {};
+	const getUserMediaSucccess = (stream) => {
+		try {
+			window.localStream.getTracks().forEach((track) => track.stop());
+		} catch (err) {
+			console.log(err);
+		}
+		window.localStream = stream;
+		localVideoRef.current.srcObject = stream;
+		for (let id in connections) {
+			if (id === socketIdRef.current) continue;
+
+			connections[id].addStream(window.localStream);
+			connections[id]
+				.createOffer()
+				.then((description) => {
+					connections[id]
+						.setLocalDescription(description)
+						.then(() => {
+							socketIdRef.current.emit("signal", id, JSON.stringify({ sdp: connections[id].localDescription }));
+						})
+						.catch((e) => console.log("e:", e));
+				})
+				.catch((e) => console.log("e:", e));
+		}
+		stream.getTracks().forEach(
+			(track) =>
+				(onended = () => {
+					setVideo(false);
+					setAudio(false);
+					try {
+						let track = localVideoRef.current.srcObject.getTracks();
+						tracks.forEach((track) => track.stop());
+					} catch (error) {
+						console.log("error:", error);
+					}
+					
+				}),
+		);
+	};  
+
+	let gotMessageFromServer = (fromId, message) => {
+		var signal = JSON.parse(message);
+
+		if (fromId !== socketIdRef.current) {
+			if (signal.sdp) {
+				connections[fromId]
+					.setRemoteDescription(new RTCSessionDescription(signal.sdp))
+					.then(() => {
+						if (signal.sdp.type === "offer") {
+							connections[fromId]
+								.createAnswer()
+								.then((description) => {
+									connections[fromId]
+										.setLocalDescription(description)
+										.then(() => {
+											socketRef.current.emit(
+												"signal",
+												fromId,
+												JSON.stringify({ sdp: connections[fromId].localDescription }),
+											);
+										})
+										.catch((e) => console.log(e));
+								})
+								.catch((e) => console.log(e));
+						}
+					})
+					.catch((e) => console.log(e));
+			}
+
+			if (signal.ice) {
+				connections[fromId].addIceCandidate(new RTCIceCandidate(signal.ice)).catch((e) => console.log(e));
+			}
+		}
+	};
+
+	const addMessage = () => {};
 
 	const connectToSocket = () => {
 		socketRef.current = io.connect(serverUrl, { secure: false });
@@ -116,11 +191,7 @@ function VideoPage() {
 							connections[id2]
 								.createOffer(description)
 								.then(() => {
-									socketRef.current.emit(
-										"signal",
-										id2,
-										JSON.stringify("sdp", connections[id2].localdescription),
-									);
+									socketRef.current.emit("signal", id2, JSON.stringify("sdp", connections[id2].localDescription));
 								})
 								.catch((err) => {
 									console.log(err);
@@ -158,8 +229,6 @@ function VideoPage() {
 	// if(!isChrome){
 
 	// }
-
-	const getUserMediaSucccess = (stream) => {};
 
 	const getUserMedia = () => {
 		if ((video && videoPermission) || (audio && audioPermission)) {
@@ -242,16 +311,12 @@ function VideoPage() {
 										objectFit: "cover",
 									}}
 								/>
-								<div style={{ fontSize: "0.9rem", color: "var(--sub)" }}>
-									This is your camera preview
-								</div>
+								<div style={{ fontSize: "0.9rem", color: "var(--sub)" }}>This is your camera preview</div>
 							</div>
 
 							<div style={{ flex: 1 }}>
 								<h2 style={{ margin: 0, marginBottom: 8 }}>Enter your display name</h2>
-								<p style={{ marginTop: 0, color: "var(--sub)" }}>
-									Others in the meeting will see this name.
-								</p>
+								<p style={{ marginTop: 0, color: "var(--sub)" }}>Others in the meeting will see this name.</p>
 								<input
 									className="joinInput"
 									placeholder="Your name"
