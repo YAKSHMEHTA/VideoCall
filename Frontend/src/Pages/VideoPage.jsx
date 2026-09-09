@@ -2,11 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import { connect, io } from "socket.io-client";
 import "../Pages/Landing.css";
 
+var connections = {};
+
 function VideoPage() {
 	const serverUrl = "localhost:8000";
-	const peerConfigConnections = {
-		iceServers: [{ urls: "stun.12connect.com:3478" }],
-	};
+const peerConfigConnections = {
+    "iceServers": [
+        { "urls": "stun:stun.l.google.com:19302" }
+    ]
+}
 
 	const socketIdRef = useRef(null);
 	const localVideoRef = useRef();
@@ -55,6 +59,21 @@ function VideoPage() {
 		}
 	};
 
+	let silence = () => {
+		let ctx = new AudioContext();
+		let oscillator = ctx.createOscillator();
+		let dst = oscillator.connect(ctx.createMediaStreamDestination());
+		oscillator.start();
+		ctx.resume();
+		return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false });
+	};
+	let black = ({ width = 640, height = 480 } = {}) => {
+		let canvas = Object.assign(document.createElement("canvas"), { width, height });
+		canvas.getContext("2d").fillRect(0, 0, width, height);
+		let stream = canvas.captureStream();
+		return Object.assign(stream.getVideoTracks()[0], { enabled: false });
+	};
+
 	const getUserMediaSucccess = (stream) => {
 		try {
 			window.localStream.getTracks().forEach((track) => track.stop());
@@ -90,10 +109,28 @@ function VideoPage() {
 					} catch (error) {
 						console.log("error:", error);
 					}
-					
 				}),
 		);
-	};  
+		stream.getTracks().forEach(
+			(track) =>
+				(track.onended = () => {
+					setScreen(false);
+
+					try {
+						let tracks = localVideoref.current.srcObject.getTracks();
+						tracks.forEach((track) => track.stop());
+					} catch (e) {
+						console.log(e);
+					}
+
+					let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
+					window.localStream = blackSilence();
+					localVideoref.current.srcObject = window.localStream;
+
+					getUserMedia();
+				}),
+		);
+	};
 
 	let gotMessageFromServer = (fromId, message) => {
 		var signal = JSON.parse(message);
