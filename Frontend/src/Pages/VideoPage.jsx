@@ -6,11 +6,9 @@ var connections = {};
 
 function VideoPage() {
 	const serverUrl = "localhost:8000";
-const peerConfigConnections = {
-    "iceServers": [
-        { "urls": "stun:stun.l.google.com:19302" }
-    ]
-}
+	const peerConfigConnections = {
+		iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+	};
 
 	const socketIdRef = useRef(null);
 	const localVideoRef = useRef();
@@ -59,6 +57,7 @@ const peerConfigConnections = {
 		}
 	};
 
+
 	let silence = () => {
 		let ctx = new AudioContext();
 		let oscillator = ctx.createOscillator();
@@ -67,6 +66,8 @@ const peerConfigConnections = {
 		ctx.resume();
 		return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false });
 	};
+
+
 	let black = ({ width = 640, height = 480 } = {}) => {
 		let canvas = Object.assign(document.createElement("canvas"), { width, height });
 		canvas.getContext("2d").fillRect(0, 0, width, height);
@@ -284,7 +285,7 @@ const peerConfigConnections = {
 				console.log(e);
 			}
 		}
-	};
+	}
 
 	useEffect(() => {
 		if (video !== undefined && audio !== undefined) {
@@ -382,9 +383,13 @@ const peerConfigConnections = {
 						</div>
 					</div>
 				</div>
-			) : null}
+			) : 
+			<>
+				<video ref={localVideoRef} autoPlay muted></video>
+			</>
+			}
 
-			{/* rest of VideoPage UI goes here */}
+			
 		</div>
 	);
 }
