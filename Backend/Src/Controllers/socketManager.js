@@ -15,12 +15,13 @@ export const connectToSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("something connected");
+
     socket.on("join-call", (path) => {
       if (connections[path] === undefined) {
         connections[path] = [];
       }
       connections[path].push(socket.id);
+
       timeOnline[socket.id] = new Date();
 
       for (let a = 0; a < connections[path].length; a++) {

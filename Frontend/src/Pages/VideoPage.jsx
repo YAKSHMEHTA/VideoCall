@@ -16,6 +16,7 @@ function VideoPage() {
 	const [videoPermission, setVideoPermission] = useState(false);
 	const [audioPermission, setAudioPermission] = useState(false);
 	const [video, setVideo] = useState([]);
+	const [screenShare, setscreenShare] = useState(false);
 	const [audio, setAudio] = useState(null);
 	const [screen, setScreen] = useState();
 	const [modal, setModal] = useState(null);
@@ -57,7 +58,6 @@ function VideoPage() {
 		}
 	};
 
-
 	let silence = () => {
 		let ctx = new AudioContext();
 		let oscillator = ctx.createOscillator();
@@ -66,7 +66,6 @@ function VideoPage() {
 		ctx.resume();
 		return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false });
 	};
-
 
 	let black = ({ width = 640, height = 480 } = {}) => {
 		let canvas = Object.assign(document.createElement("canvas"), { width, height });
@@ -194,13 +193,15 @@ function VideoPage() {
 					}
 				};
 				connections[socketListId].onaddstream = (event) => {
-					let videoExists = videoRef.current.find((video) => (video.socketId = socketListId));
+					let videoExists = videoRef.current.find((video) => video.socketId === socketListId);
 					if (videoExists) {
-						const updateVideos = videos.map((videos) =>
-							video.socketId === socketListId ? { ...video, stream: event.stream } : video,
-						);
-						videoRef.current = updateVideos;
-						return updateVideos;
+						setVideos((videos) => {
+							const updateVideos = videos.map((video) =>
+								video.socketId === socketListId ? { ...video, stream: event.stream } : video,
+							);
+							videoRef.current = updateVideos;
+							return updateVideos;
+						});
 					} else {
 						let newVideo = {
 							socketId: socketListId,
@@ -208,7 +209,7 @@ function VideoPage() {
 							autoPlay: true,
 							playsInline: true,
 						};
-						setVideo((video) => {
+						setVideos((video) => {
 							const updatedVideos = [...videos, newVideo];
 							videoRef.current = updatedVideos;
 							return updatedVideos;
@@ -219,25 +220,28 @@ function VideoPage() {
 					connections[socketListId].addStream(window.localStream);
 				} else {
 					// todo
+					let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
+					window.localStream = blackSilence();
+					connections[socketListId].addStream(window.localStream);
 				}
 			});
 			if (id === socketIdRef.current) {
 				for (let id2 in connections) {
-					if (id2 === socketRef.current) continue;
+					if (id2 === socketIdRef.current) continue;
 					try {
-						connections[id2].addStream(window.localStream).then((description) => {
-							connections[id2]
-								.createOffer(description)
-								.then(() => {
-									socketRef.current.emit("signal", id2, JSON.stringify("sdp", connections[id2].localDescription));
-								})
-								.catch((err) => {
-									console.log(err);
-								});
-						});
-					} catch (err) {
-						console.log(err);
-					}
+						connections[id2].addStream(window.localStream);
+					} catch (err) {}
+					connections[id2].createOffer().then((description) => {
+						connections[id2]
+							.createOffer(description)
+							.then(() => {
+								socketRef.current.emit("signal", id2, JSON.stringify({ sdp: connections[id2].localDescription }));
+							})
+							.catch((err) => {
+								console.log(err);
+							});
+					});
+					console.log(err);
 				}
 			}
 		});
@@ -246,7 +250,7 @@ function VideoPage() {
 	const getMedia = () => {
 		setVideo(videoPermission);
 		setAudio(audioPermission);
-		console.log("connect called");
+		console.log("localvideoRef:", localVideoRef);
 		connectToSocket();
 	};
 
@@ -277,16 +281,20 @@ function VideoPage() {
 				.catch((e) => {
 					console.log(e);
 				});
+			//videos.push(localVideoRef.current);
 		} else {
 			try {
-				let tracks = localVideoRef.current.srcObject.getTracks();
-				tracks.forEach((track) => track.stop());
+				if (localVideoRef.current && localVideoRef.current.srcObject) {
+					let tracks = localVideoRef.current.srcObject.getTracks();
+					tracks.forEach((track) => track.stop());
+					//video.push(localVideoRef.current);
+				}
 			} catch (e) {
 				console.log(e);
 			}
 		}
-	}
-
+	};
+	console.log(videos.length);
 	useEffect(() => {
 		if (video !== undefined && audio !== undefined) {
 			getUserMedia();
@@ -300,6 +308,10 @@ function VideoPage() {
 			localStorage.setItem("displayName", display);
 		} catch (e) {}
 		setAskUsername(false);
+	};
+
+	const handleVideoIcon = () => {
+		setVideo(!video);
 	};
 
 	return (
@@ -383,13 +395,71 @@ function VideoPage() {
 						</div>
 					</div>
 				</div>
-			) : 
-			<>
-				<video ref={localVideoRef} autoPlay muted></video>
-			</>
-			}
-
-			
+			) : (
+				<>
+					{videos.map((vid, idx) => {
+						return (
+							<div className="videosView  h-full w-full">
+								<h2>wda</h2>
+								<video
+									key={vid.socketId}
+									data-socket={vid.socketId}
+									// ref={(ref) => {
+									// 	if (ref && vid.stream) {
+									// 		ref.srcObject = vid.stream;
+									// 	}
+									// }}
+									ref={vid.stream}
+									playsInline
+									autoPlay
+								></video>
+							</div>
+						);
+					})}
+					<div className="flex justify-center  items-center ">
+						<div className="videoBar h-20 w-[80%] relative flex justify-evenly items-center  bg-red-800">
+							<>
+								{audio ? (
+									<span className="material-symbols-outlined scale-150">mic</span>
+								) : (
+									<span className="material-symbols-outlined scale-150">mic_off</span>
+								)}
+							</>
+							<div onClick={handleVideoIcon}>
+								{video === true ? (
+									<span className="material-symbols-outlined scale-150">video_camera_front</span>
+								) : (
+									<span className="material-symbols-outlined  scale-150">video_camera_front_off</span>
+								)}
+							</div>
+							<>
+								{screenShare === false ? (
+									<span class="material-symbols-outlined scale-150">screen_share</span>
+								) : (
+									<span class="material-symbols-outlined scale-150">stop_screen_share</span>
+								)}
+							</>
+							<>
+								<span class="material-symbols-outlined text-blue-800 scale-150">call_end</span>
+							</>
+						</div>
+					</div>
+					<video
+						className="absolute bottom-5 right-5"
+						ref={localVideoRef}
+						autoPlay
+						muted
+						playsInline
+						style={{
+							width: 320,
+							height: 180,
+							background: "#000",
+							borderRadius: 8,
+							objectFit: "cover",
+						}}
+					/>
+				</>
+			)}
 		</div>
 	);
 }
