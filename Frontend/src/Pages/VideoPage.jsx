@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { connect, io } from "socket.io-client";
 import "../Pages/Landing.css";
 
+
 var connections = {};
 
 function VideoPage() {
@@ -92,7 +93,7 @@ function VideoPage() {
 					connections[id]
 						.setLocalDescription(description)
 						.then(() => {
-							socketIdRef.current.emit("signal", id, JSON.stringify({ sdp: connections[id].localDescription }));
+							socketRef.current.emit("signal", id, JSON.stringify({ sdp: connections[id].localDescription }));
 						})
 						.catch((e) => console.log("e:", e));
 				})
@@ -100,11 +101,11 @@ function VideoPage() {
 		}
 		stream.getTracks().forEach(
 			(track) =>
-				(onended = () => {
+				(track.onended = () => {
 					setVideo(false);
 					setAudio(false);
 					try {
-						let track = localVideoRef.current.srcObject.getTracks();
+						let tracks = localVideoRef.current.srcObject.getTracks();
 						tracks.forEach((track) => track.stop());
 					} catch (error) {
 						console.log("error:", error);
@@ -115,7 +116,6 @@ function VideoPage() {
 			(track) =>
 				(track.onended = () => {
 					setScreen(false);
-
 					try {
 						let tracks = localVideoref.current.srcObject.getTracks();
 						tracks.forEach((track) => track.stop());
@@ -127,11 +127,22 @@ function VideoPage() {
 					window.localStream = blackSilence();
 					localVideoref.current.srcObject = window.localStream;
 
-					getUserMedia();
+					for (let id in connections) {
+						connections[id].addStream(window.localStream);
+
+						connections[id].createOffer().then((description) => {
+							connections[id]
+								.setLocalDescription(description)
+								.then(() => {
+									socketRef.current.emit("signal", id, JSON.stringify({ sdp: connections[id].localDescription }));
+								})
+								.catch((e) => console.log(e));
+						});
+					}
 				}),
 		);
 	};
-
+	console.log("videos:", videos);
 	let gotMessageFromServer = (fromId, message) => {
 		var signal = JSON.parse(message);
 
@@ -189,13 +200,17 @@ function VideoPage() {
 
 				connections[socketListId].onicecandidate = (event) => {
 					if (event.candidate !== null) {
-						socketRef.current.emit("signal", socketListId, JSON.stringify({ ice: event.candidate }));
+						socketRef.current.emit("signal", socketListId, JSON.stringify({ 'ice': event.candidate }));
 					}
 				};
 				connections[socketListId].onaddstream = (event) => {
+
 					let videoExists = videoRef.current.find((video) => video.socketId === socketListId);
+
+                        console.log("FINDING ID: ", socketListId);
 					if (videoExists) {
 						setVideos((videos) => {
+							console.log('found video');
 							const updateVideos = videos.map((video) =>
 								video.socketId === socketListId ? { ...video, stream: event.stream } : video,
 							);
@@ -404,11 +419,11 @@ function VideoPage() {
 								<video
 									key={vid.socketId}
 									data-socket={vid.socketId}
-									// ref={(ref) => {
-									// 	if (ref && vid.stream) {
-									// 		ref.srcObject = vid.stream;
-									// 	}
-									// }}
+									ref={(ref) => {
+										if (ref && vid.stream) {
+											ref.srcObject = vid.stream;
+										}
+									}}
 									ref={vid.stream}
 									playsInline
 									autoPlay
@@ -434,13 +449,13 @@ function VideoPage() {
 							</div>
 							<>
 								{screenShare === false ? (
-									<span class="material-symbols-outlined scale-150">screen_share</span>
+									<span className="material-symbols-outlined scale-150">screen_share</span>
 								) : (
-									<span class="material-symbols-outlined scale-150">stop_screen_share</span>
+									<span className="material-symbols-outlined scale-150">stop_screen_share</span>
 								)}
 							</>
 							<>
-								<span class="material-symbols-outlined text-blue-800 scale-150">call_end</span>
+								<span className="material-symbols-outlined text-blue-800 scale-150">call_end</span>
 							</>
 						</div>
 					</div>
