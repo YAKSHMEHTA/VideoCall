@@ -9,6 +9,7 @@ function VideoPage() {
 	const peerConfigConnections = {
 		iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 	};
+	
 
 	const socketIdRef = useRef(null);
 	const localVideoRef = useRef();
@@ -116,7 +117,7 @@ function VideoPage() {
 				(track.onended = () => {
 					setScreen(false);
 					try {
-						let tracks = localVideoref.current.srcObject.getTracks();
+						let tracks = localVideoRef.current.srcObject.getTracks();
 						tracks.forEach((track) => track.stop());
 					} catch (e) {
 						console.log(e);
@@ -124,7 +125,7 @@ function VideoPage() {
 
 					let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
 					window.localStream = blackSilence();
-					localVideoref.current.srcObject = window.localStream;
+					localVideoRef.current.srcObject = window.localStream;
 
 					for (let id in connections) {
 						connections[id].addStream(window.localStream);
@@ -182,14 +183,14 @@ function VideoPage() {
 	const connectToSocket = () => {
 		socketRef.current = io.connect(serverUrl, { secure: false });
 		socketRef.current.on("signal", gotMessageFromServer);
-
+		
 		socketRef.current.on("connect", () => {
 			socketRef.current.emit("join-call", window.location.href);
 			socketIdRef.current = socketRef.current.id;
 
 			socketRef.current.on("chat-message", addMessage);
 			socketRef.current.on("user-left", (id) => {
-				setVideo((videos) => video.filter((video) => video.socketId !== id));
+				setVideos((videos) => videos.filter((video) => video.socketId !== id));
 			});
 		});
 
@@ -203,7 +204,7 @@ function VideoPage() {
 						socketRef.current.emit("signal", socketListId, JSON.stringify({ ice: event.candidate }));
 					}
 				};
-				connections[socketListId].onaddstream = (event) => {
+				connections[socketListId].ontrack = (event) => {
 					let videoExists = videoRef.current.find((video) => video.socketId === socketListId);
 
 					console.log("FINDING ID: ", socketListId);
@@ -223,7 +224,7 @@ function VideoPage() {
 							autoPlay: true,
 							playsInline: true,
 						};
-						setVideos((video) => {
+						setVideos((videos) => {
 							const updatedVideos = [...videos, newVideo];
 							videoRef.current = updatedVideos;
 							return updatedVideos;
@@ -249,7 +250,7 @@ function VideoPage() {
 						connections[id2]
 							.setLocalDescription(description)
 							.then(() => {
-								socketRef.current.emit("signal", id2, JSON.stringify({ 'sdp': connections[id2].localDescription }));
+								socketRef.current.emit("signal", id2, JSON.stringify({ sdp: connections[id2].localDescription }));
 							})
 							.catch((err) => {
 								console.log(err);
@@ -263,27 +264,28 @@ function VideoPage() {
 	const getMedia = () => {
 		setVideo(videoPermission);
 		setAudio(audioPermission);
-		console.log("localvideoRef:", localVideoRef);
 		connectToSocket();
 	};
 
-	getPermissions();
+	console.log(videos);
+	console.log('localVideoRef:', localVideoRef);
+	console.log("video:", video);
+
+	
 
 	// useEffect(()=>{
-	//   // if user already entered a display name earlier, skip the prompt
-	//   try{
-	//     const existing = localStorage.getItem("displayName");
-	//     if(existing){
-	//       setUserName(existing);
-	//       setAskUsername(false);
-	//     }
-	//   }catch(e){}
-	//   getPermissions();
-	// },[])
+	// 	getPermissions();
+	// })
+		
 
-	// if(!isChrome){
 
-	// }
+	useEffect(()=>{
+	  // if user already entered a display name earlier, skip the prompt
+
+	  getPermissions();
+	},[])
+
+
 
 	const getUserMedia = () => {
 		if ((video && videoPermission) || (audio && audioPermission)) {
@@ -326,7 +328,7 @@ function VideoPage() {
 	const handleVideoIcon = () => {
 		setVideo(!video);
 	};
-
+setVideos
 	return (
 		<div className="z-50">
 			{askUsername ? (
@@ -413,7 +415,7 @@ function VideoPage() {
 					{videos.map((vid, idx) => {
 						return (
 							<div className="videosView  h-full w-full">
-								<h2>wda</h2>
+								<h2>{vid.socketId}</h2>
 								<video
 									key={vid.socketId}
 									data-socket={vid.socketId}
@@ -422,7 +424,13 @@ function VideoPage() {
 											ref.srcObject = vid.stream;
 										}
 									}}
-									ref={vid.stream}
+									style={{
+										width: 320,
+										height: 180,
+										background: "#000",
+										borderRadius: 8,
+										objectFit: "cover",
+									}}
 									playsInline
 									autoPlay
 								></video>
