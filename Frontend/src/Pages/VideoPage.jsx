@@ -87,7 +87,7 @@ function VideoPage() {
 		for (let id in connections) {
 			if (id === socketIdRef.current) continue;
 
-			// FIX 2: Replaced addStream/invalid addTrack with looping over tracks
+	
 			window.localStream.getTracks().forEach((track) => {
 				connections[id].addTrack(track, window.localStream);
 			});
@@ -121,7 +121,7 @@ function VideoPage() {
 					localVideoRef.current.srcObject = window.localStream;
 
 					for (let id in connections) {
-						// FIX 3: Same addTrack fix inside track.onended
+
 						window.localStream.getTracks().forEach((track) => {
 							connections[id].addTrack(track, window.localStream);
 						});
@@ -231,7 +231,7 @@ function VideoPage() {
 					}
 				};
 				if (window.localStream !== undefined && window.localStream !== null) {
-					// FIX 4: Replace addStream with addTrack loop
+		
 					window.localStream.getTracks().forEach((track) => {
 						connections[socketListId].addTrack(track, window.localStream);
 					});
@@ -279,7 +279,7 @@ function VideoPage() {
 	console.log("video:", video);
 
 	useEffect(() => {
-		// if user already entered a display name earlier, skip the prompt
+
 		getPermissions();
 	}, []);
 
@@ -321,7 +321,7 @@ function VideoPage() {
 	};
 
 	const handleVideoIcon = () => {
-		// FIX 6: Toggle the track safely to prevent the browser from freezing
+
 		if (window.localStream) {
 			const videoTrack = window.localStream.getVideoTracks()[0];
 			if (videoTrack) {
@@ -329,7 +329,11 @@ function VideoPage() {
 			}
 		}
 		setVideo(!video);
-	};
+	}
+
+	const handleAudioMute = ()=>{
+		setAudio(!audio);
+	}
 
 	return (
 		<div className="z-50">
@@ -417,7 +421,7 @@ function VideoPage() {
 					<div className="flex gap-20 h-screen">
 						{videos.map((vid, idx) => {
 							return (
-								// FIX 7: Moved the 'key' attribute up to the parent div
+
 								<div key={vid.socketId} className="videosView   h-full w-full">
 									<h2>{vid.socketId}</h2>
 									<video
@@ -443,13 +447,13 @@ function VideoPage() {
 					</div>
 					<div className="flex justify-center  items-center ">
 						<div className="videoBar h-20 w-[80%] relative flex justify-evenly items-center  bg-red-800">
-							<>
+							<div onClick={handleAudioMute} >
 								{audio ? (
 									<span className="material-symbols-outlined scale-150">mic</span>
 								) : (
 									<span className="material-symbols-outlined scale-150">mic_off</span>
 								)}
-							</>
+							</div>
 							<div onClick={handleVideoIcon}>
 								{video === true ? (
 									<span className="material-symbols-outlined scale-150">video_camera_front</span>
