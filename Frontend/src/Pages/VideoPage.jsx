@@ -335,6 +335,26 @@ function VideoPage() {
 		setAudio(!audio);
 	}
 
+	const getDsiplayMedia = async()=>{
+		if(screen){
+			if(navigator.mediaDevices.getDisplayMedia){
+				navigator.mediaDevices.getDisplayMedia({videoL:true,audio:true})
+				.then(getDsiplayMediaSuccess)
+				.then((stream)=>{})
+				.catch((e)=> console.log(e));
+		}
+	}
+
+	useEffect(()=>{
+		if(screen !== undefined){
+			getDsiplayMedia()
+		}
+	},[screen])
+
+	const handleScreen = async()=>{
+		setScreen(!screen)
+	}
+}
 	return (
 		<div className="z-50">
 			{askUsername ? (
@@ -418,7 +438,7 @@ function VideoPage() {
 				</div>
 			) : (
 				<>
-					<div className="flex gap-20 h-screen">
+					<div className="flex  h-screen">
 						{videos.map((vid, idx) => {
 							return (
 
