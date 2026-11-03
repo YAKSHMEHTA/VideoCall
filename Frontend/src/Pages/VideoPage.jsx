@@ -16,11 +16,10 @@ function VideoPage() {
 	const [videoPermission, setVideoPermission] = useState(false);
 	const [audioPermission, setAudioPermission] = useState(false);
 
-
 	const [video, setVideo] = useState(false);
 	const [screenShare, setscreenShare] = useState(false);
 	const [audio, setAudio] = useState(null);
-	const [screen, setScreen] = useState();
+	const [screen, setScreen] = useState(false);
 	const [modal, setModal] = useState(null);
 	const [message, setMessage] = useState(null);
 	const [newMessage, setNewMessage] = useState(0);
@@ -87,7 +86,6 @@ function VideoPage() {
 		for (let id in connections) {
 			if (id === socketIdRef.current) continue;
 
-	
 			window.localStream.getTracks().forEach((track) => {
 				connections[id].addTrack(track, window.localStream);
 			});
@@ -121,7 +119,6 @@ function VideoPage() {
 					localVideoRef.current.srcObject = window.localStream;
 
 					for (let id in connections) {
-
 						window.localStream.getTracks().forEach((track) => {
 							connections[id].addTrack(track, window.localStream);
 						});
@@ -231,7 +228,6 @@ function VideoPage() {
 					}
 				};
 				if (window.localStream !== undefined && window.localStream !== null) {
-		
 					window.localStream.getTracks().forEach((track) => {
 						connections[socketListId].addTrack(track, window.localStream);
 					});
@@ -279,7 +275,6 @@ function VideoPage() {
 	console.log("video:", video);
 
 	useEffect(() => {
-
 		getPermissions();
 	}, []);
 
@@ -288,7 +283,9 @@ function VideoPage() {
 			navigator.mediaDevices
 				.getUserMedia({ video: video, audio: audio })
 				.then(getUserMediaSucccess)
-				.then((stream) => {})
+				.then((stream) => {
+					console.log("stream", stream);
+				})
 				.catch((e) => {
 					console.log(e);
 				});
@@ -321,7 +318,6 @@ function VideoPage() {
 	};
 
 	const handleVideoIcon = () => {
-
 		if (window.localStream) {
 			const videoTrack = window.localStream.getVideoTracks()[0];
 			if (videoTrack) {
@@ -329,32 +325,80 @@ function VideoPage() {
 			}
 		}
 		setVideo(!video);
-	}
+	};
 
-	const handleAudioMute = ()=>{
+	const handleAudioMute = () => {
 		setAudio(!audio);
-	}
+	};
 
-	const getDsiplayMedia = async()=>{
-		if(screen){
-			if(navigator.mediaDevices.getDisplayMedia){
-				navigator.mediaDevices.getDisplayMedia({videoL:true,audio:true})
-				.then(getDsiplayMediaSuccess)
-				.then((stream)=>{})
-				.catch((e)=> console.log(e));
+	const getDsiplayMediaSuccess = (stream) => {
+		try {
+			window.localStream.getTracks().forEach((track) => track.stop());
+		} catch (error) {
+			console.log("error:", error);
 		}
-	}
-
-	useEffect(()=>{
-		if(screen !== undefined){
-			getDsiplayMedia()
+		window.localStream = stream;
+		localVideoRef.current.srcObject = stream;
+		for (let id in connections) {
+			if (id == socketIdRef.current) continue;
+			connections[id].addStream(window.localStream);
+			connections[id].createOffer().then((description) => {
+				connections[id]
+					.setLocalDescription(description)
+					.then(() => {
+						socketRef.current.emit("signal", id, JSON.stringify({ sdp: connections[id].localDescription }));
+					})
+					.catch((err) => console.log("err:", err));
+			});
 		}
-	},[screen])
+		stream.getTracks().forEach(
+			(track) =>
+				(track.onended = () => {
+					setScreen(false);
+					try {
+						let tracks = localVideoRef.current.srcObject.getTracks();
+						tracks.forEach((track) => track.stop());
+					} catch (e) {
+						console.log(e);
+					}
 
-	const handleScreen = async()=>{
-		setScreen(!screen)
-	}
-}
+					let blackSilence = (...args) => new MediaStream([black(...args), silence()]);
+					window.localStream = blackSilence();
+					localVideoRef.current.srcObject = window.localStream;
+
+					getUserMedia();
+				}),
+		);
+	};
+
+	const getDsiplayMedia = async () => {
+		if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+			console.log("Screen sharing is not supported in this browser.");
+			return;
+		}
+
+		try {
+			const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+			getDsiplayMediaSuccess(stream);
+		} catch (e) {
+			console.log(e);
+			setScreen(false);
+			setscreenShare(false);
+		}
+	};
+
+	const handleScreen = () => {
+		const nextScreenState = !screen;
+		setScreen(nextScreenState);
+		setscreenShare(nextScreenState);
+	};
+
+	useEffect(() => {
+		if (screen) {
+			getDsiplayMedia();
+		}
+	}, [screen]);
+
 	return (
 		<div className="z-50">
 			{askUsername ? (
@@ -441,7 +485,6 @@ function VideoPage() {
 					<div className="flex  h-screen">
 						{videos.map((vid, idx) => {
 							return (
-
 								<div key={vid.socketId} className="videosView   h-full w-full">
 									<h2>{vid.socketId}</h2>
 									<video
@@ -467,7 +510,7 @@ function VideoPage() {
 					</div>
 					<div className="flex justify-center  items-center ">
 						<div className="videoBar h-20 w-[80%] relative flex justify-evenly items-center  bg-red-800">
-							<div onClick={handleAudioMute} >
+							<div onClick={handleAudioMute}>
 								{audio ? (
 									<span className="material-symbols-outlined scale-150">mic</span>
 								) : (
@@ -481,13 +524,13 @@ function VideoPage() {
 									<span className="material-symbols-outlined  scale-150">video_camera_front_off</span>
 								)}
 							</div>
-							<>
+							<div onClick={handleScreen}>
 								{screenShare === false ? (
 									<span className="material-symbols-outlined scale-150">screen_share</span>
 								) : (
 									<span className="material-symbols-outlined scale-150">stop_screen_share</span>
 								)}
-							</>
+							</div>
 							<>
 								<span className="material-symbols-outlined text-blue-800 scale-150">call_end</span>
 							</>
