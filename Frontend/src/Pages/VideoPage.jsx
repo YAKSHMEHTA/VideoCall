@@ -15,7 +15,7 @@ function VideoPage() {
 	const socketRef = useRef(null);
 	const [videoPermission, setVideoPermission] = useState(false);
 	const [audioPermission, setAudioPermission] = useState(false);
-
+	const [showChat, setShowChat] = useState(false);
 	const [video, setVideo] = useState(false);
 	const [screenShare, setscreenShare] = useState(false);
 	const [audio, setAudio] = useState(null);
@@ -509,7 +509,7 @@ function VideoPage() {
 						})}
 					</div>
 					<div className="flex justify-center  items-center ">
-						<div className="videoBar h-20 w-[80%] relative flex justify-evenly items-center  bg-red-800">
+						<div className="videoBar h-20 w-[80%] relative flex justify-evenly items-center  ">
 							<div onClick={handleAudioMute}>
 								{audio ? (
 									<span className="material-symbols-outlined scale-150">mic</span>
@@ -524,6 +524,9 @@ function VideoPage() {
 									<span className="material-symbols-outlined  scale-150">video_camera_front_off</span>
 								)}
 							</div>
+							<div onClick={()=>setShowChat(!showChat)}>
+								<span className="material-symbols-outlined scale-150">chat</span>
+							</div>
 							<div onClick={handleScreen}>
 								{screenShare === false ? (
 									<span className="material-symbols-outlined scale-150">screen_share</span>
@@ -536,8 +539,9 @@ function VideoPage() {
 							</>
 						</div>
 					</div>
+
 					<video
-						className="absolute bottom-5 right-5"
+						className="absolute bottom-5 left-5"
 						ref={localVideoRef}
 						autoPlay
 						muted
@@ -552,6 +556,7 @@ function VideoPage() {
 					/>
 				</>
 			)}
+			{showChat && <div className="absolute top-0 right-0 h-screen w-[35%] bg-red-700 z-50"></div>}
 		</div>
 	);
 }
