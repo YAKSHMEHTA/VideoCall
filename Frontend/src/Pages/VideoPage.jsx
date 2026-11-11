@@ -524,7 +524,7 @@ function VideoPage() {
 									<span className="material-symbols-outlined  scale-150">video_camera_front_off</span>
 								)}
 							</div>
-							<div onClick={()=>setShowChat(!showChat)}>
+							<div onClick={() => setShowChat(!showChat)}>
 								<span className="material-symbols-outlined scale-150">chat</span>
 							</div>
 							<div onClick={handleScreen}>
@@ -556,7 +556,16 @@ function VideoPage() {
 					/>
 				</>
 			)}
-			{showChat && <div className="absolute top-0 right-0 h-screen w-[35%] bg-red-700 z-50"></div>}
+			{showChat && (
+				<div className="absolute top-0 right-0 h-screen w-[35%] bg-red-700 z-50">
+					<div className="send-msg-box absolute  px-2 py-2 w-full h-15 bottom-0">
+						<form className="h-full w-full flex  items-center gap-10" action="">
+							<input type="text" className="bg-blue-500 w-[75%] h-full" />
+							<span className="material-symbols-outlined scale-150">send</span>
+						</form>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
