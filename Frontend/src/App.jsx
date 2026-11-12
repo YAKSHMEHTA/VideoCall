@@ -5,6 +5,7 @@ import "./App.css";
 import Auth from "./Pages/Auth";
 import VideoPage from "./Pages/VideoPage";
 import AskUsername from "./Pages/AskUsername";
+import history from "./Pages/history";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
             <Route path="/auth" element={<Auth></Auth>}></Route>
             <Route path="/" element={<LandingPage />} />
             <Route path="/room/:url" element={<VideoPage />} />
+            <Route path="/history" element={history}/>
           </Routes>
         </AuthProvider>
       </BrowserRouter>
