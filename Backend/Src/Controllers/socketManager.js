@@ -61,7 +61,8 @@ export const connectToSocket = (server) => {
         if (messages[matchingRoom] === undefined) {
           messages[matchingRoom] = [];
         }
-        messages[matchingRoom].push({
+        console.log("Message received from " + sender + ": " + data);
+        messages[matchingRoom].push({ 
           sender: sender,
           data: data,
           "socket-id-sender": socket.id,

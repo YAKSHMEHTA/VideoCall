@@ -21,12 +21,13 @@ function VideoPage() {
 	const [audio, setAudio] = useState(null);
 	const [screen, setScreen] = useState(false);
 	const [modal, setModal] = useState(null);
-	const [message, setMessage] = useState(null);
+	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState(0);
 	const [askUsername, setAskUsername] = useState(true);
 	const [userName, setUserName] = useState("");
 	const videoRef = useRef([]);
 	const [videos, setVideos] = useState([]);
+	const [message, setMessage] = useState("");
 
 	const getPermissions = async () => {
 		const cameraPermission = await navigator.mediaDevices.getUserMedia({
@@ -170,8 +171,6 @@ function VideoPage() {
 			}
 		}
 	};
-
-	const addMessage = () => {};
 
 	const connectToSocket = () => {
 		socketRef.current = io.connect(serverUrl, { secure: false });
@@ -399,6 +398,18 @@ function VideoPage() {
 		}
 	}, [screen]);
 
+	const handleSendMessage = () => {
+		socketRef.current.emit("chat-message", message, userName);
+		setMessage("");
+	};
+
+	const addMessage = (data, sender, senderSocketId) => {
+		setMessages((prevMessages) => [...prevMessages, { sender: sender, data: data }]);
+		if(senderSocketId !== socketIdRef.current){
+			setNewMessage((prev) => prev+1)
+		}
+	};
+
 	return (
 		<div className="z-50">
 			{askUsername ? (
@@ -558,10 +569,27 @@ function VideoPage() {
 			)}
 			{showChat && (
 				<div className="absolute top-0 right-0 h-screen w-[35%] bg-red-700 z-50">
+					<div className="chat-area overflow-y-scroll flex h-full w-full flex-col">
+						{messages.length > 0 ? messages.map((item, idx) => {
+							return (
+								<div className="" key={idx}>
+									<p>{item.sender}</p>
+									<p>{item.data}</p>
+								</div>
+							);
+						}):null}
+					</div>
 					<div className="send-msg-box absolute  px-2 py-2 w-full h-15 bottom-0">
 						<form className="h-full w-full flex  items-center gap-10" action="">
-							<input type="text" className="bg-blue-500 w-[75%] h-full" />
-							<span className="material-symbols-outlined scale-150">send</span>
+							<input
+								value={message}
+								onChange={(e) => setMessage(e.target.value)}
+								type="text"
+								className="bg-blue-500 w-[75%] h-full"
+							/>
+							<span onClick={handleSendMessage} className="material-symbols-outlined scale-150">
+								send
+							</span>
 						</form>
 					</div>
 				</div>
