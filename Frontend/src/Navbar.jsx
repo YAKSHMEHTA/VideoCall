@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 function Navbar() {
-  const location = window.location.href;
-  const [inMeeting,setInMeeting] = useState(location.search('room'));
-  useEffect(()=>{
-    setInMeeting(location.search('room'));
-  },[window.location.href])
-  console.log('meet',inMeeting)
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/room')) {
+    return null;
+  }
+
   return (
-    inMeeting < 0 ?  
-      <div className='relative'>
+    <div className='relative'>
       <nav className="navBar " style={{ width: '100%',}}>
         <div className="logoText">Ve<span>x</span></div>
         <div className="navMid">
@@ -21,12 +21,11 @@ function Navbar() {
         </div>
         <div className="navRight">
           <button className="nBtn nGhost">Sign in</button>
-          <a to={"/"} className="nBtn nSolid">Get started</a >
+          <a to={"/home"} className="nBtn nSolid">Get started</a >
         </div>
       </nav>
-    </div>  : (<div >
-    </div> )
-  )
+    </div>
+  );
 }
 
-export default Navbar
+export default Navbar;

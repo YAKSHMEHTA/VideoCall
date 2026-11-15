@@ -266,7 +266,7 @@ function LandingPage() {
         </div>
       </section>
  
-      {/* ── FOOTER ── */}
+
       <footer className="footerBar">
         <div className="fLogo">Ve<span>x</span></div>
         <div className="fLinks">

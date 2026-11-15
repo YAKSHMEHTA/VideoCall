@@ -5,18 +5,22 @@ import "./App.css";
 import Auth from "./Pages/Auth";
 import VideoPage from "./Pages/VideoPage";
 import AskUsername from "./Pages/AskUsername";
-import history from "./Pages/history";
+import History from "./Pages/History";
+import Home from "./Pages/Home";
+import Navbar from "./Navbar";
 
 function App() {
   return (
     <>
       <BrowserRouter>
+        <Navbar />
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth></Auth>}></Route>
             <Route path="/" element={<LandingPage />} />
             <Route path="/room/:url" element={<VideoPage />} />
-            <Route path="/history" element={history}/>
+            <Route path="/history" element={<History/>}/>
+            <Route path="/home" element={<Home/>}/>
           </Routes>
         </AuthProvider>
       </BrowserRouter>

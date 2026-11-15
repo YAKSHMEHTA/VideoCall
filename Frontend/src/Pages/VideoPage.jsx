@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { connect, io } from "socket.io-client";
 import "../Pages/Landing.css";
+import { Route, useNavigate } from "react-router-dom";
 
 var connections = {};
 
@@ -28,6 +29,12 @@ function VideoPage() {
 	const videoRef = useRef([]);
 	const [videos, setVideos] = useState([]);
 	const [message, setMessage] = useState("");
+
+	const dedupeVideos = (items = []) => {
+		return items.filter(
+			(video, index, arr) => arr.findIndex((item) => item.socketId === video.socketId) === index,
+		);
+	};
 
 	const getPermissions = async () => {
 		const cameraPermission = await navigator.mediaDevices.getUserMedia({
@@ -182,7 +189,7 @@ function VideoPage() {
 
 			socketRef.current.on("chat-message", addMessage);
 			socketRef.current.on("user-left", (id) => {
-				setVideos((videos) => videos.filter((video) => video.socketId !== id));
+				setVideos((videos) => dedupeVideos(videos.filter((video) => video.socketId !== id)));
 			});
 		});
 
@@ -206,8 +213,10 @@ function VideoPage() {
 					if (videoExists) {
 						setVideos((videos) => {
 							console.log("found video");
-							const updatedVideos = videos.map((video) =>
-								video.socketId === socketListId ? { ...video, stream: stream } : video,
+							const updatedVideos = dedupeVideos(
+								videos.map((video) =>
+									video.socketId === socketListId ? { ...video, stream: stream } : video,
+								),
 							);
 							videoRef.current = updatedVideos;
 							return updatedVideos;
@@ -220,7 +229,7 @@ function VideoPage() {
 							playsInline: true,
 						};
 						setVideos((videos) => {
-							const updatedVideos = [...videos, newVideo];
+							const updatedVideos = dedupeVideos([...videos, newVideo]);
 							videoRef.current = updatedVideos;
 							return updatedVideos;
 						});
@@ -409,6 +418,16 @@ function VideoPage() {
 			setNewMessage((prev) => prev+1)
 		}
 	};
+	let router = useNavigate();
+	const handleEndCall = ()=>{
+		try {
+			let tracks = localVideoRef.current.srcObject.getTracks();
+			tracks.forEach((track)=> track.stop())
+		} catch (error) {
+			console.log(error)
+		}
+		router("/");
+	}
 
 	return (
 		<div className="z-50">
@@ -546,7 +565,7 @@ function VideoPage() {
 								)}
 							</div>
 							<>
-								<span className="material-symbols-outlined text-blue-800 scale-150">call_end</span>
+								<span onClick={handleEndCall} className="material-symbols-outlined text-blue-800 scale-150">call_end</span>
 							</>
 						</div>
 					</div>
